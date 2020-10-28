@@ -9,6 +9,7 @@
 #include "Carla/Recorder/CarlaRecorder.h"
 #include "Carla/Sensor/WorldObserver.h"
 #include "Carla/Server/CarlaServer.h"
+#include "Carla/Util/BenchmarkAgent.h"
 #include "Carla/Util/NonCopyable.h"
 
 #include "Misc/CoreDelegates.h"
@@ -72,4 +73,6 @@ private:
   FDelegateHandle OnPostTickHandle;
 
   FDelegateHandle OnEpisodeSettingsChangeHandle;
+
+  BenchmarkAgent Benchmark;
 };

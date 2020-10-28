@@ -125,6 +125,10 @@ void FCarlaEngine::OnPreTick(UWorld *World, ELevelTick TickType, float DeltaSeco
 
 void FCarlaEngine::OnPostTick(UWorld *, ELevelTick, float DeltaSeconds)
 {
+  // UE_LOG(LogCarla, Error, TEXT("=================================================="));
+  // Benchmark.CollectFrameStats();
+  // UE_LOG(LogCarla, Error, TEXT("=================================================="));
+
   if (GetCurrentEpisode())
   {
     auto* EpisodeRecorder = GetCurrentEpisode()->GetRecorder();
