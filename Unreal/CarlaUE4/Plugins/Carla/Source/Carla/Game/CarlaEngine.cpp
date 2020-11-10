@@ -15,6 +15,7 @@
 #include "Carla/Settings/EpisodeSettings.h"
 
 #include "Runtime/Core/Public/Misc/App.h"
+#include "PhysicsEngine/PhysicsSettings.h"
 
 #include <thread>
 
@@ -154,6 +155,12 @@ void FCarlaEngine::OnEpisodeSettingsChanged(const FEpisodeSettings &Settings)
   }
 
   FCarlaEngine_SetFixedDeltaSeconds(Settings.FixedDeltaSeconds);
+
+  // Setting parameters for physics substepping
+  UPhysicsSettings* PhysSett = UPhysicsSettings::Get();
+  PhysSett->bSubstepping = Settings.bSubstepping;
+  PhysSett->MaxSubstepDeltaTime = Settings.MaxSubstepDeltaTime;
+  PhysSett->MaxSubsteps = Settings.MaxSubsteps;
 }
 
 void FCarlaEngine::ResetSimulationState()
