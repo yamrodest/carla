@@ -204,5 +204,9 @@ namespace client {
     return _episode.Lock()->CastRay(start_location, end_location);
   }
 
+  void World::SendConsoleCommand(std::string command) const {
+    _episode.Lock()->SendConsoleCommand(command);
+  }
+
 } // namespace client
 } // namespace carla
