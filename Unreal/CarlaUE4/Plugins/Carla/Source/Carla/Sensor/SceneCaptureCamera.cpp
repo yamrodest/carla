@@ -26,7 +26,11 @@ void ASceneCaptureCamera::SendPixels(UWorld *World, ELevelTick TickType, float D
 {
   if(ReadyToCapture)
   {
-    FPixelReader::SendPixelsInRenderThread(*this);
+    UCarlaGameInstance* GI = Cast<UCarlaGameInstance>(GetGameInstance());
+    FPixelReader::SendPixelsInRenderThread(
+      *this,
+      GI->IsSensorCameraTextureCaptureEnabled(),
+      GI->IsSensorCameraStreamEnabled());
     ReadyToCapture = false;
   }
 }

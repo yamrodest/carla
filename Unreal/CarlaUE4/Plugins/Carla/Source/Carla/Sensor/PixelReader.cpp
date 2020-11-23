@@ -44,7 +44,8 @@ static void WritePixelsToBuffer_Vulkan(
     const UTextureRenderTarget2D &RenderTarget,
     carla::Buffer &Buffer,
     uint32 Offset,
-    FRHICommandListImmediate &InRHICmdList)
+    FRHICommandListImmediate &InRHICmdList,
+    bool CaptureTexture)
 {
   check(IsInRenderingThread());
   auto RenderResource =
@@ -58,11 +59,21 @@ static void WritePixelsToBuffer_Vulkan(
   FIntPoint Rect = RenderResource->GetSizeXY();
 
   // NS: Extra copy here, don't know how to avoid it.
-  InRHICmdList.ReadSurfaceData(
-      Texture,
-      FIntRect(0, 0, Rect.X, Rect.Y),
-      gPixels,
-      FReadSurfaceDataFlags(RCM_UNorm, CubeFace_MAX));
+  if(CaptureTexture)
+  {
+    InRHICmdList.ReadSurfaceData(
+        Texture,
+        FIntRect(0, 0, Rect.X, Rect.Y),
+        gPixels,
+        FReadSurfaceDataFlags(RCM_UNorm, CubeFace_MAX));
+  }
+  else
+  {
+    // 0x404040FF = (64, 64, 64, FF)
+    //FMemory::Memset(gPixels, static_cast<uint8>(0x404040FF));
+    FMemory::Memset(gPixels.GetData(), static_cast<uint8>(0x40), gPixels.Num() * 4);
+    //FMemory::Memzero(gPixels.GetData(), gPixels.Num());
+  }
 
   Buffer.copy_from(Offset, gPixels);
 }
@@ -127,14 +138,15 @@ void FPixelReader::WritePixelsToBuffer(
     UTextureRenderTarget2D &RenderTarget,
     carla::Buffer &Buffer,
     uint32 Offset,
-    FRHICommandListImmediate &InRHICmdList
+    FRHICommandListImmediate &InRHICmdList,
+    bool CaptureTexture
     )
 {
   check(IsInRenderingThread());
 
   if (IsVulkanPlatform(GMaxRHIShaderPlatform) || IsD3DPlatform(GMaxRHIShaderPlatform, false))
   {
-    WritePixelsToBuffer_Vulkan(RenderTarget, Buffer, Offset, InRHICmdList);
+    WritePixelsToBuffer_Vulkan(RenderTarget, Buffer, Offset, InRHICmdList, CaptureTexture);
     return;
   }
 
