@@ -95,18 +95,21 @@ void ARayCastSemanticLidar::SimulateLidar(const float DeltaTime)
 
   const float CurrentHorizontalAngle = carla::geom::Math::ToDegrees(
       SemanticLidarData.GetHorizontalAngle());
-  const float AngleDistanceOfTick = Description.RotationFrequency * 360.0f * DeltaTime;
+  const float AngleDistanceOfTick = Description.RotationFrequency * Description.HorizontalFov 
+      * DeltaTime;
   const float AngleDistanceOfLaserMeasure = AngleDistanceOfTick / PointsToScanWithOneLaser;
 
   ResetRecordedHits(ChannelCount, PointsToScanWithOneLaser);
+  PreprocessRays(ChannelCount, PointsToScanWithOneLaser);
 
   GetWorld()->GetPhysicsScene()->GetPxScene()->lockRead();
   ParallelFor(ChannelCount, [&](int32 idxChannel) {
     for (auto idxPtsOneLaser = 0u; idxPtsOneLaser < PointsToScanWithOneLaser; idxPtsOneLaser++) {
       FHitResult HitResult;
       const float VertAngle = LaserAngles[idxChannel];
-      const float HorizAngle = CurrentHorizontalAngle + AngleDistanceOfLaserMeasure * idxPtsOneLaser;
-      const bool PreprocessResult = PreprocessRay();
+      const float HorizAngle = std::fmod(CurrentHorizontalAngle + AngleDistanceOfLaserMeasure
+          * idxPtsOneLaser, Description.HorizontalFov) - Description.HorizontalFov / 2;
+      const bool PreprocessResult = RayPreprocessCondition[idxChannel][idxPtsOneLaser];
 
       if (PreprocessResult && ShootLaser(VertAngle, HorizAngle, HitResult)) {
         WritePointAsync(idxChannel, HitResult);
@@ -119,15 +122,26 @@ void ARayCastSemanticLidar::SimulateLidar(const float DeltaTime)
   ComputeAndSaveDetections(ActorTransf);
 
   const float HorizontalAngle = carla::geom::Math::ToRadians(
-      std::fmod(CurrentHorizontalAngle + AngleDistanceOfTick, 360.0f));
+      std::fmod(CurrentHorizontalAngle + AngleDistanceOfTick, Description.HorizontalFov));
   SemanticLidarData.SetHorizontalAngle(HorizontalAngle);
 }
 
 void ARayCastSemanticLidar::ResetRecordedHits(uint32_t Channels, uint32_t MaxPointsPerChannel) {
   RecordedHits.resize(Channels);
-  for (auto& aux : RecordedHits) {
-    aux.clear();
-    aux.reserve(MaxPointsPerChannel);
+
+  for (auto& hits : RecordedHits) {
+    hits.clear();
+    hits.reserve(MaxPointsPerChannel);
+  }
+}
+
+void ARayCastSemanticLidar::PreprocessRays(uint32_t Channels, uint32_t MaxPointsPerChannel) {
+  RayPreprocessCondition.resize(Channels);
+
+  for (auto& conds : RayPreprocessCondition) {
+    conds.clear();
+    conds.resize(MaxPointsPerChannel);
+    std::fill(conds.begin(), conds.end(), true);
   }
 }
 
