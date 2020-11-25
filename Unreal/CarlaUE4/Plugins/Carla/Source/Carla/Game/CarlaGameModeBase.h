@@ -73,6 +73,12 @@ public:
   UFUNCTION(Category = "Carla Game Mode")
   ULevel* GetULevelFromName(FString LevelName);
 
+  UFUNCTION(BlueprintImplementableEvent, CallInEditor, Exec, Category="Carla Game Mode")
+  void ConvertBuildingsToCubes();
+
+  UFUNCTION(BlueprintCallable, Category="Carla Game Mode")
+  TArray<AActor*> GetAllActorsOfLevel(const FString& InLevelName);
+
 protected:
 
   void InitGame(const FString &MapName, const FString &Options, FString &ErrorMessage) override;

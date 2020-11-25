@@ -474,7 +474,7 @@ void ACarlaGameModeBase::ConvertMapLayerMaskToMapNames(int32 MapLayer, TArray<FN
   for(ULevelStreaming* Level : Levels)
   {
     TArray<FString> StringArray;
-    FString FullSubMapName = Level->PackageNameToLoad.ToString();
+    FString FullSubMapName = Level->GetWorldAssetPackageFName().ToString();
     // Discard full path, we just need the umap name
     FullSubMapName.ParseIntoArray(StringArray, TEXT("/"), false);
     FString SubMapName = StringArray[StringArray.Num() - 1];
@@ -498,7 +498,7 @@ ULevel* ACarlaGameModeBase::GetULevelFromName(FString LevelName)
 
   for(ULevelStreaming* Level : Levels)
   {
-    FString FullSubMapName = Level->PackageNameToLoad.ToString();
+    FString FullSubMapName = Level->GetWorldAssetPackageFName().ToString();
     if(FullSubMapName.Contains(LevelName))
     {
       OutLevel = Level->GetLoadedLevel();
@@ -511,4 +511,29 @@ ULevel* ACarlaGameModeBase::GetULevelFromName(FString LevelName)
   }
 
   return OutLevel;
+}
+
+TArray<AActor*> ACarlaGameModeBase::GetAllActorsOfLevel(const FString& InLevelName)
+{
+  TArray<AActor*> OutActors;
+  UWorld* World = GetWorld();
+
+  const TArray <ULevelStreaming*> StreamingLevels = World->GetStreamingLevels();
+  for (const ULevelStreaming* StreamingLevel : StreamingLevels)
+  {
+    FString FullSubMapName = StreamingLevel->GetWorldAssetPackageFName().ToString();
+    ULevel *Level =  StreamingLevel->GetLoadedLevel();
+
+    UE_LOG(LogCarla, Warning, TEXT("GetAllActorsOfLevel ActorLevel %s - InLevel %s"), *FullSubMapName, *InLevelName);
+
+    if(FullSubMapName.Contains(InLevelName))
+    {
+      for (AActor* Actor : Level->Actors)
+      {
+        OutActors.Emplace(Actor);
+      }
+    }
+  }
+
+  return OutActors;
 }
