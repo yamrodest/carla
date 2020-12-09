@@ -103,6 +103,10 @@ void ACarlaGameModeBase::InitGame(
 
   GameInstance->NotifyInitGame();
 
+  OnEpisodeSettingsChangeHandle = FCarlaStaticDelegates::OnEpisodeSettingsChange.AddUObject(
+        this,
+        &ACarlaGameModeBase::OnEpisodeSettingsChanged);
+
   SpawnActorFactories();
 
   // make connection between Episode and Recorder
@@ -182,6 +186,8 @@ void ACarlaGameModeBase::Tick(float DeltaSeconds)
 
 void ACarlaGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+  FCarlaStaticDelegates::OnEpisodeSettingsChange.Remove(OnEpisodeSettingsChangeHandle);
+
   Episode->EndPlay();
   GameInstance->NotifyEndEpisode();
 
@@ -534,4 +540,9 @@ TArray<AActor*> ACarlaGameModeBase::GetAllActorsOfLevel(const FString& InLevelNa
   }
 
   return OutActors;
+}
+
+void ACarlaGameModeBase::OnEpisodeSettingsChanged(const FEpisodeSettings &Settings)
+{
+  CarlaSettingsDelegate->SetAllActorsDrawDistance(GetWorld(), Settings.MaxCullingDistance);
 }
