@@ -131,7 +131,8 @@ class SimulationSynchronization(object):
         for sumo_actor_id in self.sumo2carla_ids:
             carla_actor_id = self.sumo2carla_ids[sumo_actor_id]
 
-            sumo_actor = self.sumo.get_actor(sumo_actor_id)
+	    v = list()
+            sumo_actor = self.sumo.get_actor(sumo_actor_id, v)
             carla_actor = self.carla.get_actor(carla_actor_id)
 
             carla_transform = BridgeHelper.get_carla_transform(sumo_actor.transform,
@@ -142,7 +143,7 @@ class SimulationSynchronization(object):
             else:
                 carla_lights = None
 
-            self.carla.synchronize_vehicle(carla_actor_id, carla_transform, carla_lights)
+            self.carla.synchronize_vehicle(carla_actor_id, carla_transform, v[0], v[1], carla_lights)
 
         # Updates traffic lights in carla based on sumo information.
         if self.tls_manager == 'sumo':

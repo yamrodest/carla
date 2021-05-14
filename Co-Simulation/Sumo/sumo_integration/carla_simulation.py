@@ -109,8 +109,10 @@ class CarlaSimulation(object):
                                     transform.rotation)
 
         batch = [
+            #carla.command.SpawnActor(blueprint, transform).then(
+            #    carla.command.SetSimulatePhysics(carla.command.FutureActor, False))
             carla.command.SpawnActor(blueprint, transform).then(
-                carla.command.SetSimulatePhysics(carla.command.FutureActor, False))
+                carla.command.SetSimulatePhysics(carla.command.FutureActor, True))
         ]
         response = self.client.apply_batch_sync(batch, False)[0]
         if response.error:
@@ -128,7 +130,7 @@ class CarlaSimulation(object):
             return actor.destroy()
         return False
 
-    def synchronize_vehicle(self, vehicle_id, transform, lights=None):
+    def synchronize_vehicle(self, vehicle_id, transform, vx, vy, lights=None):
         """
         Updates vehicle state.
 
@@ -142,6 +144,8 @@ class CarlaSimulation(object):
             return False
 
         vehicle.set_transform(transform)
+        vehicle.set_target_velocity(carla.Vector3D(vx, vy, 0))
+        speed = vehicle.get_velocity()
         if lights is not None:
             vehicle.set_light_state(carla.VehicleLightState(lights))
         return True

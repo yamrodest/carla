@@ -390,7 +390,7 @@ class SumoSimulation(object):
         return self.net.getLocationOffset()
 
     @staticmethod
-    def get_actor(actor_id):
+    def get_actor(actor_id, v=None):
         """
         Accessor for sumo actor.
         """
@@ -403,6 +403,10 @@ class SumoSimulation(object):
         length = results[traci.constants.VAR_LENGTH]
         width = results[traci.constants.VAR_WIDTH]
         height = results[traci.constants.VAR_HEIGHT]
+
+	if v is not None:
+            v.append(results[traci.constants.VAR_SPEED])
+            v.append(results[traci.constants.VAR_SPEED_LAT])
 
         location = list(results[traci.constants.VAR_POSITION3D])
         rotation = [results[traci.constants.VAR_SLOPE], results[traci.constants.VAR_ANGLE], 0.0]
