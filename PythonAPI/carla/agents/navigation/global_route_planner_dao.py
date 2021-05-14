@@ -54,13 +54,19 @@ class GlobalRoutePlannerDAO(object):
             seg_dict['entryxyz'], seg_dict['exitxyz'] = (x1, y1, z1), (x2, y2, z2)
             seg_dict['path'] = []
             endloc = wp2.transform.location
-            if wp1.transform.location.distance(endloc) > self._sampling_resolution:
-                w = wp1.next(self._sampling_resolution)[0]
-                while w.transform.location.distance(endloc) > self._sampling_resolution:
-                    seg_dict['path'].append(w)
-                    w = w.next(self._sampling_resolution)[0]
-            else:
-                seg_dict['path'].append(wp1.next(self._sampling_resolution)[0])
+            if len(wp1.next(self._sampling_resolution)) > 0:
+		    if wp1.transform.location.distance(endloc) > self._sampling_resolution:
+		        w = wp1.next(self._sampling_resolution)[0]
+			if not len(w.next(self._sampling_resolution)) > 0:
+                                print("w",w)
+				seg_dict['path'].append(w)
+		        while w.transform.location.distance(endloc) > self._sampling_resolution and len(w.next(self._sampling_resolution)) > 0:
+		            seg_dict['path'].append(w)
+		            w = w.next(self._sampling_resolution)[0]
+		    else:
+		        seg_dict['path'].append(wp1.next(self._sampling_resolution)[0])
+	    else:
+	        seg_dict['path'].append(wp1)
             topology.append(seg_dict)
         return topology
 
